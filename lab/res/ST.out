@@ -1,9 +1,11 @@
 IDS 
-Symbol: a, Position: (3, 0)
-Symbol: b, Position: (4, 0)
+Symbol: a, Position: (2, 0)
+Symbol: b, Position: (2, 1)
 Symbol: c, Position: (8, 0)
+
 INTEGER CONSTANTS
 Symbol: 2, Position: (2, 0)
 Symbol: 3, Position: (3, 0)
 Symbol: 4, Position: (4, 0)
+
 STRING CONSTANTS

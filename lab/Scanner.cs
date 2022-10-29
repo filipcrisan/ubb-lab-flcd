@@ -35,15 +35,15 @@ public class Scanner
         SkipComment();
         
         if (_charIndex == _program.Length) return;
-
-        if (TryParseStringConstant()) return;
-
-        if (TryParseIntegerConstant()) return;
-
+        
         if (TryParseReservedToken()) return;
 
         if (TryParseIdentifier()) return;
 
+        if (TryParseStringConstant()) return;
+
+        if (TryParseIntegerConstant()) return;
+        
         throw new LexicalException($"Invalid token: {FindInvalidToken()}", _lineIndex);
     }
 
