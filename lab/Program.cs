@@ -42,7 +42,10 @@ try
                                     symbolTableEntry.Item2.Item1 + ", " + symbolTableEntry.Item2.Item2 + ")")
         .ToList();
     
-    File.WriteAllLines("../../../res/ST.out", new[] { "IDS "});
+    File.WriteAllLines("../../../res/ST.out", new[] { "Symbol table is implemented using hash tables. " +
+                                                      "Each category below has it's own hash table, and Position: (x, y)" +
+                                                      " means bucket x, list index y.\n"});
+    File.AppendAllLines("../../../res/ST.out", new[] { "IDS "});
     File.AppendAllLines("../../../res/ST.out", identifiers);
     File.AppendAllLines("../../../res/ST.out", new [] { "\nINTEGER CONSTANTS" });
     File.AppendAllLines("../../../res/ST.out", integerConstants);
