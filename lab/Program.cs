@@ -1,12 +1,19 @@
 ﻿using lab;
 
-var ht = new HashTable<int>(5);
-Console.WriteLine(ht.Add(4));
-Console.WriteLine(ht.Get(4));
+var program = File.ReadAllText("../../../res/p1.in");
+var tokens = File.ReadAllLines("../../../res/token.in").ToList();
 
-Console.WriteLine(ht.Add(4));
-Console.WriteLine(ht.Get(4));
+var scanner  = new Scanner(program, tokens);
 
-Console.WriteLine(ht.Add(9));
+try
+{
+    scanner.Scan();
+    
+}
+catch (LexicalException le)
+{
+    Console.WriteLine(le.Message + ". Line: " + le.Line);
+    return;
+}
 
-Console.WriteLine(ht.Search(4, 2));
+// write in files

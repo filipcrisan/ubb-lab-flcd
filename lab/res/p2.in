@@ -1,0 +1,6 @@
+const x is 5, y is 6;
+while (y) {
+x, y is y, x % y;
+}
+if (x is 1) { print(true); }
+else { print(false); }
