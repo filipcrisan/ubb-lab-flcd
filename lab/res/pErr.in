@@ -1,5 +1,5 @@
 const 7H15variableIsNotValid is 4; // lexical error: identifier starts with a digit
 while (7H15variableIsNotValid > 0) { 
-print(”here); // lexical error: trailing quotes missing
+print("here); // lexical error: trailing quotes missing
 7H15variableIsNotValid is (7H15variableIsNotValid - 1);
 }

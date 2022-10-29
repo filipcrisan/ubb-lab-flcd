@@ -17,12 +17,14 @@ public class Scanner
         _tokens = tokens;
     }
 
-    public void Scan()
+    public (List<PifEntry>, SymbolTable) Scan()
     {
         while (_charIndex < _program.Length)
         {
             ParseNextToken();
         }
+        
+        return (_pif, _symbolTable);
     }
     
     #region Private methods
@@ -70,12 +72,48 @@ public class Scanner
 
     private bool TryParseStringConstant()
     {
-        return false;
+        const string pattern = "^\"[a-zA-Z0-9_?!#*./%+=<>;)(}{ ]+\"";
+        var regex = new Regex(pattern);
+        
+        var match = regex.Match(_program[_charIndex..]);
+        if (!match.Success)
+        {
+            return false;
+        }
+
+        _charIndex += match.Length;
+
+        var stPosition = _symbolTable.AddStringConstant(match.Value);
+        var pifEntry = new PifEntry
+        {
+            Token = Token.Constant,
+            StPosition = stPosition
+        };
+        _pif.Add(pifEntry);
+        return true;
     }
     
     private bool TryParseIntegerConstant()
     {
-        return false;
+        const string pattern = "^0|[+|-][1-9]([0-9])*|[1-9]([0-9])*|[+|-][1-9]([0-9])*\\.([0-9])*|[1-9]([0-9])*\\.([0-9])*";
+        var regex = new Regex(pattern);
+        
+        var match = regex.Match(_program[_charIndex..]);
+        if (!match.Success)
+        {
+            return false;
+        }
+
+        _charIndex += match.Length;
+
+        var stPosition = _symbolTable.AddIntegerConstant(int.Parse(match.Value));
+        var pifEntry = new PifEntry
+        {
+            Token = Token.Constant,
+            StPosition = stPosition
+        };
+        _pif.Add(pifEntry);
+        return true;
     }
     
     private bool TryParseReservedToken()
