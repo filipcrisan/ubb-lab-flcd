@@ -9,12 +9,18 @@ try
 {
     var result = scanner.Scan();
     
+    #region Write PIF file
+    
     var pifEntries = result
         .Item1
         .Select(pifEntry => "Token: " + pifEntry.Token!.Value + ", Position: (" + pifEntry.StPosition.Item1 + ", " + pifEntry.StPosition.Item2 + ")")
         .ToList();
     File.WriteAllLines("../../../res/PIF.out", pifEntries);
+    
+    #endregion
 
+    #region Write ST file
+    
     var identifiers = result
         .Item2
         .GetAllIdentifiers()
@@ -42,6 +48,8 @@ try
     File.AppendAllLines("../../../res/ST.out", integerConstants);
     File.AppendAllLines("../../../res/ST.out", new [] { "\nSTRING CONSTANTS" });
     File.AppendAllLines("../../../res/ST.out", stringConstants);
+    
+    #endregion
 }
 catch (LexicalException le)
 {

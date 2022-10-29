@@ -8,7 +8,7 @@ public class Scanner
     private readonly List<string> _tokens;
     private readonly SymbolTable _symbolTable = new();
     private readonly List<PifEntry> _pif = new();
-    private int _charIndex = 0;
+    private int _charIndex;
     private int _lineIndex = 1;
     
     public Scanner(string program, List<string> tokens)
@@ -34,15 +34,15 @@ public class Scanner
         SkipWhitespace();
         SkipComment();
         
-        if (_charIndex == _program.Length) return;
+        if (_charIndex >= _program.Length) return;
         
         if (TryParseReservedToken()) return;
 
-        if (TryParseIdentifier()) return;
+        if (char.IsLetter(_program[_charIndex]) && TryParseIdentifier()) return;
 
-        if (TryParseStringConstant()) return;
+        if (_program[_charIndex] == '"' && TryParseStringConstant()) return;
 
-        if (TryParseIntegerConstant()) return;
+        if (char.IsDigit(_program[_charIndex]) && TryParseIntegerConstant()) return;
         
         throw new LexicalException($"Invalid token: {FindInvalidToken()}", _lineIndex);
     }
@@ -68,6 +68,9 @@ public class Scanner
         {
             _charIndex++;
         }
+
+        _lineIndex++;
+        _charIndex++;
     }
 
     private bool TryParseStringConstant()
@@ -78,6 +81,13 @@ public class Scanner
         var match = regex.Match(_program[_charIndex..]);
         if (!match.Success)
         {
+            const string quotesPattern = "^\"[a-zA-Z0-9_?!#*./%+=<>;)(}{ ]+";
+            var quotesRegex = new Regex(quotesPattern);
+            var quotesMatch = quotesRegex.Match(_program[_charIndex..]);
+            if (quotesMatch.Success)
+            {
+                throw new LexicalException($"Invalid token: {FindInvalidToken()}", _lineIndex);
+            }
             return false;
         }
 
@@ -95,7 +105,7 @@ public class Scanner
     
     private bool TryParseIntegerConstant()
     {
-        const string pattern = "^0|[+|-][1-9]([0-9])*|[1-9]([0-9])*|[+|-][1-9]([0-9])*\\.([0-9])*|[1-9]([0-9])*\\.([0-9])*";
+        const string pattern = "^(0|[+|-][1-9]([0-9])*|[1-9]([0-9])*|[+|-][1-9]([0-9])*\\.([0-9])*|[1-9]([0-9])*\\.([0-9])*)+([^a-zA-Z])+";
         var regex = new Regex(pattern);
         
         var match = regex.Match(_program[_charIndex..]);
@@ -104,9 +114,11 @@ public class Scanner
             return false;
         }
 
-        _charIndex += match.Length;
+        var number = match.Groups[1];
 
-        var stPosition = _symbolTable.AddIntegerConstant(int.Parse(match.Value));
+        _charIndex += number.Length;
+
+        var stPosition = _symbolTable.AddIntegerConstant(int.Parse(number.Value));
         var pifEntry = new PifEntry
         {
             Token = Token.Constant,

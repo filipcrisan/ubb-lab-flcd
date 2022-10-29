@@ -1,7 +1,7 @@
 IDS 
-Symbol: a, Position: (2, 0)
-Symbol: b, Position: (2, 1)
-Symbol: c, Position: (8, 0)
+Symbol: c, Position: (2, 0)
+Symbol: a, Position: (6, 0)
+Symbol: b, Position: (9, 0)
 
 INTEGER CONSTANTS
 Symbol: 2, Position: (2, 0)
