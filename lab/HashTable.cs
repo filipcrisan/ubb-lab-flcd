@@ -71,6 +71,20 @@ public class HashTable<T>
 
         return _buckets[bucketIndex][listIndex];
     }
+
+    public List<(T, (int, int))> GetAll()
+    {
+        var result = new List<(T, (int, int))>();
+        for (var i = 0; i < _buckets.Count; i++)
+        {
+            for (var j = 0; j < _buckets[i].Count; j++)
+            {
+                result.Add((_buckets[i][j], (i, j)));
+            }
+        }
+
+        return result;
+    }
     
     #region Private methods
 
