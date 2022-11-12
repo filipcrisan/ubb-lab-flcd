@@ -32,7 +32,7 @@ int GetFaMenuOption()
 
 void FaMenu()
 {
-    var finiteAutomaton = new FiniteAutomaton();
+    var finiteAutomaton = new FiniteAutomaton("../../../res/FA.in");
     int option;
     do
     {

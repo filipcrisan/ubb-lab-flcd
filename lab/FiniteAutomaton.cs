@@ -8,9 +8,9 @@ public class FiniteAutomaton
     private readonly HashSet<string> _finalStates;
     private readonly Dictionary<(string, string), HashSet<string>> _transitions;
 
-    public FiniteAutomaton()
+    public FiniteAutomaton(string filePath)
     {
-        var lines = File.ReadAllLines("../../../res/FA.in");
+        var lines = File.ReadAllLines(filePath);
 
         _states = new HashSet<string>(lines[0].Split(" "));
         _alphabet = new HashSet<string>(lines[1].Split(" "));
@@ -88,5 +88,26 @@ public class FiniteAutomaton
         }
 
         return _finalStates.Contains(currentState);
+    }
+    
+    public string? GetNextToken(string program)
+    {
+        if (program.Length == 0)
+        {
+            return null;
+        }
+
+        var result = string.Empty;
+
+        var currentState = _initialState;
+        foreach (var key in program.Select(character => (currentState, character.ToString())))
+        {
+            if (!_transitions.ContainsKey(key)) break;
+
+            currentState = _transitions.GetValueOrDefault(key)!.First();
+            result += key.Item2;
+        }
+
+        return !_finalStates.Contains(currentState) ? null : result;
     }
 }

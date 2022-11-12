@@ -98,16 +98,13 @@ public class Scanner
     
     private bool TryParseIntegerConstant()
     {
-        const string pattern = "^0|[+|-][1-9]([0-9])*|[1-9]([0-9])*|[+|-][1-9]([0-9])*\\.([0-9])*|[1-9]([0-9])*\\.([0-9])*";
-        var regex = new Regex(pattern);
+        var finiteAutomaton = new FiniteAutomaton("../../../res/integerConstantDFA.in");
+        var number = finiteAutomaton.GetNextToken(_program[_charIndex..]);
         
-        var match = regex.Match(_program[_charIndex..]);
-        if (!match.Success || char.IsLetter(_program[_charIndex + match.Value.Length]))
+        if (number is null || char.IsLetter(_program[_charIndex + number.Length]))
         {
             return false;
         }
-
-        var number = match.Value;
 
         _charIndex += number.Length;
 
@@ -142,18 +139,17 @@ public class Scanner
     
     private bool TryParseIdentifier()
     {
-        const string pattern = "^[a-zA-Z]([a-z|A-Z|0-9|_])*";
-        var regex = new Regex(pattern);
-
-        var match = regex.Match(_program[_charIndex..]);
-        if (!match.Success)
+        var finiteAutomaton = new FiniteAutomaton("../../../res/identifierDFA.in");
+        var identifier = finiteAutomaton.GetNextToken(_program[_charIndex..]);
+        
+        if (identifier is null)
         {
             return false;
         }
 
-        _charIndex += match.Length;
+        _charIndex += identifier.Length;
 
-        var stPosition = _symbolTable.AddIdentifier(match.Value);
+        var stPosition = _symbolTable.AddIdentifier(identifier);
         var pifEntry = new PifEntry
         {
             Token = Token.Identifier,
