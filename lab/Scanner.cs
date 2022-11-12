@@ -38,11 +38,11 @@ public class Scanner
         
         if (TryParseReservedToken()) return;
 
-        if (char.IsLetter(_program[_charIndex]) && TryParseIdentifier()) return;
+        if (TryParseIdentifier()) return;
 
-        if (_program[_charIndex] == '"' && TryParseStringConstant()) return;
+        if (TryParseStringConstant()) return;
 
-        if (char.IsDigit(_program[_charIndex]) && TryParseIntegerConstant()) return;
+        if (TryParseIntegerConstant()) return;
         
         throw new LexicalException($"Invalid token: {FindInvalidToken()}", _lineIndex);
     }
@@ -81,13 +81,6 @@ public class Scanner
         var match = regex.Match(_program[_charIndex..]);
         if (!match.Success)
         {
-            const string quotesPattern = "^\"[a-zA-Z0-9_?!#*./%+=<>;)(}{ ]+";
-            var quotesRegex = new Regex(quotesPattern);
-            var quotesMatch = quotesRegex.Match(_program[_charIndex..]);
-            if (quotesMatch.Success)
-            {
-                throw new LexicalException($"Invalid token: {FindInvalidToken()}", _lineIndex);
-            }
             return false;
         }
 
