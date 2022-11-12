@@ -11,20 +11,20 @@ public class Scanner
     private int _charIndex;
     private int _lineIndex = 1;
     
-    public Scanner(string program, List<string> tokens)
+    public Scanner()
     {
-        _program = program;
-        _tokens = tokens;
+        _program = File.ReadAllText("../../../res/p1.in");
+        _tokens = File.ReadAllLines("../../../res/token.in").ToList();
     }
 
-    public (List<PifEntry>, SymbolTable) Scan()
+    public void Scan()
     {
         while (_charIndex < _program.Length)
         {
             ParseNextToken();
         }
-        
-        return (_pif, _symbolTable);
+
+        WriteResultsToFiles();
     }
     
     #region Private methods
@@ -172,6 +172,50 @@ public class Scanner
         }
 
         return _program.Substring(_charIndex, i - _charIndex);
+    }
+
+    private void WriteResultsToFiles()
+    {
+        #region Write PIF file
+    
+        var pifEntries = _pif
+            .Select(pifEntry => "Token: " + pifEntry.Token!.Value + ", Position: (" + pifEntry.StPosition.Item1 + ", " + pifEntry.StPosition.Item2 + ")")
+            .ToList();
+        File.WriteAllLines("../../../res/PIF.out", pifEntries);
+        
+        #endregion
+
+        #region Write ST file
+        
+        var identifiers = _symbolTable
+            .GetAllIdentifiers()
+            .Select(symbolTableEntry => "Symbol: " + symbolTableEntry.Item1 + ", Position: (" +
+                                        symbolTableEntry.Item2.Item1 + ", " + symbolTableEntry.Item2.Item2 + ")")
+            .ToList();
+        
+        var integerConstants = _symbolTable
+            .GetAllIntegerConstants()
+            .Select(symbolTableEntry => "Symbol: " + symbolTableEntry.Item1 + ", Position: (" +
+                                        symbolTableEntry.Item2.Item1 + ", " + symbolTableEntry.Item2.Item2 + ")")
+            .ToList();
+        
+        var stringConstants = _symbolTable
+            .GetAllStringConstants()
+            .Select(symbolTableEntry => "Symbol: " + symbolTableEntry.Item1 + ", Position: (" +
+                                        symbolTableEntry.Item2.Item1 + ", " + symbolTableEntry.Item2.Item2 + ")")
+            .ToList();
+        
+        File.WriteAllLines("../../../res/ST.out", new[] { "Symbol table is implemented using hash tables. " +
+                                                          "Each category below has it's own hash table, and Position: (x, y)" +
+                                                          " means bucket x, list index y.\n"});
+        File.AppendAllLines("../../../res/ST.out", new[] { "IDS "});
+        File.AppendAllLines("../../../res/ST.out", identifiers);
+        File.AppendAllLines("../../../res/ST.out", new [] { "\nINTEGER CONSTANTS" });
+        File.AppendAllLines("../../../res/ST.out", integerConstants);
+        File.AppendAllLines("../../../res/ST.out", new [] { "\nSTRING CONSTANTS" });
+        File.AppendAllLines("../../../res/ST.out", stringConstants);
+        
+        #endregion
     }
     
     #endregion
