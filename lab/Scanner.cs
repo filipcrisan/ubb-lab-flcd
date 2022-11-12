@@ -98,20 +98,20 @@ public class Scanner
     
     private bool TryParseIntegerConstant()
     {
-        const string pattern = "^(0|[+|-][1-9]([0-9])*|[1-9]([0-9])*|[+|-][1-9]([0-9])*\\.([0-9])*|[1-9]([0-9])*\\.([0-9])*)+([^a-zA-Z])+";
+        const string pattern = "^0|[+|-][1-9]([0-9])*|[1-9]([0-9])*|[+|-][1-9]([0-9])*\\.([0-9])*|[1-9]([0-9])*\\.([0-9])*";
         var regex = new Regex(pattern);
         
         var match = regex.Match(_program[_charIndex..]);
-        if (!match.Success)
+        if (!match.Success || char.IsLetter(_program[_charIndex + match.Value.Length]))
         {
             return false;
         }
 
-        var number = match.Groups[1];
+        var number = match.Value;
 
         _charIndex += number.Length;
 
-        var stPosition = _symbolTable.AddIntegerConstant(int.Parse(number.Value));
+        var stPosition = _symbolTable.AddIntegerConstant(int.Parse(number));
         var pifEntry = new PifEntry
         {
             Token = Token.Constant,
