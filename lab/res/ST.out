@@ -1,9 +1,9 @@
 Symbol table is implemented using hash tables. Each category below has it's own hash table, and Position: (x, y) means bucket x, list index y.
 
 IDS 
-Symbol: a, Position: (4, 0)
-Symbol: b, Position: (8, 0)
-Symbol: c, Position: (9, 0)
+Symbol: b, Position: (6, 0)
+Symbol: c, Position: (8, 0)
+Symbol: a, Position: (9, 0)
 
 INTEGER CONSTANTS
 Symbol: 2, Position: (2, 0)
