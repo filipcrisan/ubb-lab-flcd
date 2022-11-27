@@ -1,6 +1,6 @@
 ﻿using lab_part_2;
 
-var grammar = new Grammar("../../../resources/g1.in");
+var grammar = new Grammar("../../../resources/g2.in");
 
 while (true)
 {

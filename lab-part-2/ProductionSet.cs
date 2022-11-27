@@ -17,6 +17,7 @@ public class ProductionSet
             sides[1].Trim().Split(" | ").ToList().ForEach(token =>
             {
                 var rhs = token.Trim().Split(" ").Where(x => x != "epsilon").ToList();
+                // rhs = rhs.Any() ? rhs : new List<string> { "epsilon" };
                 Add(lhs, rhs);
             });
         }
