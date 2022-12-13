@@ -17,13 +17,43 @@ public class ProductionSet
             sides[1].Trim().Split(" | ").ToList().ForEach(token =>
             {
                 var rhs = token.Trim().Split(" ").Where(x => x != "epsilon").ToList();
-                // rhs = rhs.Any() ? rhs : new List<string> { "epsilon" };
+                rhs = rhs.Any() ? rhs : new List<string> { "epsilon" };
                 Add(lhs, rhs);
             });
         }
     }
 
     public Dictionary<List<string>, List<List<string>>> Productions() => _productions;
+
+    public List<List<string>> GetByNonTerminal(List<string> lhs)
+    {
+        var key = GetKey(lhs);
+
+        return key is null ? new List<List<string>>() : _productions[key];
+    }
+    
+    public Dictionary<string, List<List<string>>> ProductionsByNonTerminalInRhs(string nonTerminal)
+    {
+        var result = new Dictionary<string, List<List<string>>>();
+
+        foreach (var (k, v) in _productions)
+        {
+            // We assume it's CFG
+            var key = k.First();
+            
+            foreach (var production in v.Where(production => production.Contains(nonTerminal)))
+            {
+                if (!result.ContainsKey(key))
+                {
+                    result.Add(key, new List<List<string>>());
+                }
+
+                result[key].Add(production);
+            }
+        }
+
+        return result;
+    }
     
     public string GetByNonTerminalToString(List<string> lhs)
     {
