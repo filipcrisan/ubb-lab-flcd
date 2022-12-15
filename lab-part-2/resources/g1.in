@@ -1,7 +1,8 @@
-S A B
-a b c
-S
-S -> a A | b B
-A -> b | A
-A -> c
-B -> b B | b
+E T E' F T'
++ * id ( )
+E
+E -> T E'
+E' -> + T E' | epsilon
+T -> F T'
+T' -> * F T' | epsilon
+F -> id | ( E )

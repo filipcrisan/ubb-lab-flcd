@@ -40,8 +40,11 @@ public class ProductionSet
         {
             // We assume it's CFG
             var key = k.First();
+
+            var productionsContainingNonTerminal = v.
+                Where(production => production.Contains(nonTerminal));
             
-            foreach (var production in v.Where(production => production.Contains(nonTerminal)))
+            foreach (var production in productionsContainingNonTerminal)
             {
                 if (!result.ContainsKey(key))
                 {

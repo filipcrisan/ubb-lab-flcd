@@ -49,4 +49,3 @@ GrammarMenu(grammar);
 var parser = new Parser(grammar);
 Console.WriteLine(parser.FirstToString());
 Console.WriteLine(parser.FollowToString());
-Console.WriteLine(parser.ParseTableToString());
