@@ -24,32 +24,38 @@ public class Parser
     #region Private methods
     
     private void GenerateFirst() {
-        // initialization
+        // init: for each non-terminal, add left-most element in production if it's a terminal or epsilon
         foreach (var nonTerminal in _grammar.NonTerminals) {
             _firstSet.Add(nonTerminal, new HashSet<string>());
-            var productionForNonTerminal = _grammar.ProductionSet.GetByNonTerminal(new List<string> { nonTerminal });
-            foreach (var production in productionForNonTerminal) {
-                if (_grammar.Terminals.Contains(production[0]) || production[0].Equals("epsilon"))
+            
+            _grammar.ProductionSet
+                .GetByNonTerminal(new List<string> { nonTerminal })
+                .Where(production => _grammar.Terminals.Contains(production[0]) || production[0].Equals("epsilon"))
+                .ToList()
+                .ForEach(production =>
+                {
                     _firstSet[nonTerminal].Add(production[0]);
-            }
+                });
         }
 
-        // rest of iterations
-        var isChanged = true;
-        while (isChanged)
+        var done = false;
+        while (!done)
         {
-            isChanged = false;
-            var newColumn = new Dictionary<string, HashSet<string>>();
+            done = true;
+            var newFirstSet = new Dictionary<string, HashSet<string>>();
 
             foreach (var nonTerminal in _grammar.NonTerminals)
             {
-                var productionForNonTerminal = _grammar.ProductionSet.GetByNonTerminal(new List<string> { nonTerminal });
-                var toAdd = new HashSet<string>(_firstSet[nonTerminal]);
-                foreach (var production in productionForNonTerminal)
+                var productionsOfNonTerminal = _grammar.ProductionSet.GetByNonTerminal(new List<string> { nonTerminal });
+                var toAdd = new HashSet<string>();
+                toAdd.UnionWith(_firstSet[nonTerminal]);
+                foreach (var rhs in productionsOfNonTerminal)
                 {
                     var rhsNonTerminals = new List<string>();
                     var rhsTerminal = string.Empty;
-                    foreach (var symbol in production)
+                    
+                    // add all non-terminals in a list until you find the first terminal
+                    foreach (var symbol in rhs)
                     {
                         if (_grammar.NonTerminals.Contains(symbol))
                         {
@@ -62,31 +68,31 @@ public class Parser
                         }
                     }
                     
-                    toAdd.UnionWith(concatenationOfSizeOne(rhsNonTerminals, rhsTerminal));
+                    toAdd.UnionWith(GetUnionOfFirstSets(rhsNonTerminals, rhsTerminal));
                 }
                 
                 if (!AreSetsEqual(toAdd, _firstSet[nonTerminal]))
                 {
-                    isChanged = true;
+                    done = false;
                 }
-                newColumn.Add(nonTerminal, toAdd);
+
+                newFirstSet.Add(nonTerminal, toAdd);
             }
-            _firstSet = newColumn;
+            
+            _firstSet = newFirstSet;
         }
     }
     
     private void GenerateFollow() {
-        // initialization
         foreach (var nonTerminal in _grammar.NonTerminals) {
             _followSet.Add(nonTerminal, new HashSet<string>());
         }
         _followSet[_grammar.StartingSymbol].Add("epsilon");
 
-        // rest of iterations
-        var isChanged = true;
-        while (isChanged)
+        var done = false;
+        while (!done)
         {
-            isChanged = false;
+            done = true;
             var newColumn = new Dictionary<string, HashSet<string>>();
 
             foreach (var nonTerminal in _grammar.NonTerminals)
@@ -147,7 +153,7 @@ public class Parser
                 
                 if (!AreSetsEqual(toAdd, _followSet[nonTerminal]))
                 {
-                    isChanged = true;
+                    done = false;
                 }
                 newColumn[nonTerminal] = toAdd;
             }
@@ -155,47 +161,51 @@ public class Parser
         }
     }
     
-    private HashSet<string> concatenationOfSizeOne(List<string> nonTerminals, string terminal) {
-        if (nonTerminals.Count == 0)
+    private IEnumerable<string> GetUnionOfFirstSets(List<string> nonTerminals, string terminal) {
+        switch (nonTerminals.Count)
         {
-            return new HashSet<string>();
-        }
-        
-        if (nonTerminals.Count == 1) {
-            return _firstSet[nonTerminals.First()];
+            case 0:
+                return new HashSet<string>();
+            case 1:
+                return _firstSet[nonTerminals[0]];
         }
 
-        var concatenation = new HashSet<string>();
-        var step = 0;
         var allEpsilon = true;
-
         nonTerminals.ForEach(x =>
         {
-            if (!_firstSet[x].Contains("epsilon")) {
+            if (!_firstSet[x].Contains("epsilon"))
+            {
                 allEpsilon = false;
             }
         });
         
-        if (allEpsilon) {
-            concatenation.Add(string.IsNullOrEmpty(terminal) ? "epsilon" : terminal);
+        var result = new HashSet<string>();
+        
+        if (allEpsilon)
+        {
+            result.Add(string.IsNullOrEmpty(terminal) ? "epsilon" : terminal);
         }
 
-        while (step < nonTerminals.Count) {
-            var thereIsOneEpsilon = false;
-            foreach (var s in _firstSet[nonTerminals[step]])
+        var i = 0;
+        var epsilonFound = true;
+        while (i < nonTerminals.Count && epsilonFound)
+        {
+            epsilonFound = false;
+            foreach (var s in _firstSet[nonTerminals[i]])
             {
-                if (s.Equals("epsilon"))
-                    thereIsOneEpsilon = true;
+                if (s == "epsilon")
+                {
+                    epsilonFound = true;
+                }
                 else
-                    concatenation.Add(s);
+                {
+                    result.Add(s);
+                }
             }
-
-            if (thereIsOneEpsilon)
-                step++;
-            else
-                break;
+            i++;
         }
-        return concatenation;
+
+        return result;
     }
 
     private static bool AreSetsEqual<T>(IReadOnlyCollection<T> a, IReadOnlySet<T> b)
