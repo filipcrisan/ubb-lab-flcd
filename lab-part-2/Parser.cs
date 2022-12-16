@@ -68,7 +68,7 @@ public class Parser
                         }
                     }
                     
-                    toAdd.UnionWith(GetUnionOfFirstSets(rhsNonTerminals, rhsTerminal));
+                    toAdd.UnionWith(GetConcatenationOfLengthOne(rhsNonTerminals, rhsTerminal));
                 }
                 
                 if (!AreSetsEqual(toAdd, _firstSet[nonTerminal]))
@@ -161,7 +161,7 @@ public class Parser
         }
     }
     
-    private IEnumerable<string> GetUnionOfFirstSets(List<string> nonTerminals, string terminal) {
+    private IEnumerable<string> GetConcatenationOfLengthOne(List<string> nonTerminals, string terminal) {
         switch (nonTerminals.Count)
         {
             case 0:
