@@ -5,20 +5,28 @@ public class Parser
     private readonly Grammar _grammar;
     private Dictionary<string, HashSet<string>> _firstSet;
     private Dictionary<string, HashSet<string>> _followSet;
+    private readonly Dictionary<(string, string), (string, int)> _parseTable;
+    private readonly List<List<string>> _productionsRhs;
     
     public Parser(Grammar grammar) {
         _grammar = grammar;
         _firstSet = new Dictionary<string, HashSet<string>>();
         _followSet = new Dictionary<string, HashSet<string>>();
+        _parseTable = new Dictionary<(string, string), (string, int)>();
+        _productionsRhs = new List<List<string>>();
         
         GenerateFirst();
         GenerateFollow();
+        GenerateParseTable();
     }
 
     public string FirstToString() => _firstSet.Aggregate("============= First =============\n",
         (current, keyValuePair) => current + $"{keyValuePair.Key}: [{string.Join(", ", keyValuePair.Value)}]\n");
     
     public string FollowToString() => _followSet.Aggregate("============= Follow =============\n",
+        (current, keyValuePair) => current + $"{keyValuePair.Key}: [{string.Join(", ", keyValuePair.Value)}]\n");
+    
+    public string ParseTableToString() => _parseTable.Aggregate("============= Parse Table =============\n",
         (current, keyValuePair) => current + $"{keyValuePair.Key}: [{string.Join(", ", keyValuePair.Value)}]\n");
     
     #region Private methods
@@ -158,6 +166,139 @@ public class Parser
                 newColumn[nonTerminal] = toAdd;
             }
             _followSet = newColumn;
+        }
+    }
+    
+    private void GenerateParseTable() {
+        var rows = new List<string>();
+        rows.AddRange(_grammar.NonTerminals);
+        rows.AddRange(_grammar.Terminals);
+        rows.Add("$");
+
+        var columns = new List<string>();
+        columns.AddRange(_grammar.Terminals);
+        columns.Add("$");
+
+        // initialize everything with err
+        foreach (var row in rows)
+            foreach (var col in columns)
+                _parseTable[(row, col)] = ("err", -1);
+
+        // add pop diagonal
+        foreach (var col in columns)
+            _parseTable[(col, col)] = ("pop", -1);
+
+        // add acc
+        _parseTable[("$", "$")] = ("acc", -1);
+        
+        foreach (var (k, v) in _grammar.ProductionSet.Productions())
+        {
+            var nonTerminal = k.First();
+            foreach (var production in v)
+            {
+                _productionsRhs.Add(production[0] != "epsilon" ? production : new List<string> { "epsilon", nonTerminal });
+            }
+        }
+        
+        foreach (var (k, v) in _grammar.ProductionSet.Productions())
+        {
+            var key = k.First();
+            
+            foreach (var production in v)
+            {
+                var firstSymbol = production[0];
+
+                if (_grammar.Terminals.Contains(firstSymbol))
+                {
+                    if (_parseTable[(key, firstSymbol)].Item1.Equals("err"))
+                    {
+                        _parseTable[(key, firstSymbol)] = (string.Join(" ", production), _productionsRhs.IndexOf(production) + 1);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Found a conflict for pair: " + key + ", " + firstSymbol);
+                    }
+                }
+                else if (_grammar.NonTerminals.Contains(firstSymbol))
+                {
+                    if (production.Count == 1)
+                    {
+                        foreach (var symbol in _firstSet[firstSymbol])
+                        {
+                            if (_parseTable[(key, symbol)].Item1.Equals("err"))
+                            {
+                                _parseTable[(key, symbol)] = (string.Join(" ", production),_productionsRhs.IndexOf(production)+1);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Found a conflict for pair: " + key + ", " + symbol);
+                            }
+                        }
+                    }
+                    else 
+                    {
+                        var i = 1;
+                        var nextSymbol = production[1];
+                        var firstSetForProduction = _firstSet[firstSymbol];
+
+                        while (i < production.Count && _grammar.NonTerminals.Contains(nextSymbol)) {
+                            var firstForNext = _firstSet[nextSymbol];
+                            if (firstSetForProduction.Contains("epsilon")) {
+                                firstSetForProduction.Remove("epsilon");
+                                firstSetForProduction.UnionWith(firstForNext);
+                            }
+
+                            i++;
+                            if (i < production.Count)
+                                nextSymbol = production[i];
+                        }
+                        
+                        firstSetForProduction = firstSetForProduction
+                            .Select(symbol => symbol == "epsilon" ? "$" : symbol)
+                            .ToHashSet();
+                        
+                        foreach (var symbolToAdd in firstSetForProduction)
+                        {
+                            if (_parseTable[(key, symbolToAdd)].Item1.Equals("err"))
+                            {
+                                _parseTable[(key, symbolToAdd)] = (string.Join(" ", production), _productionsRhs.IndexOf(production) + 1);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Found a conflict for pair: " + key + ", " + symbolToAdd);
+                            }
+                        }
+                    }
+                } 
+                else 
+                {
+                    var follow = _followSet[key];
+                    foreach (var symbol in follow)
+                    {
+                        if (symbol == "epsilon")
+                        {
+                            if (_parseTable[(key, "$")].Item1.Equals("err"))
+                            {
+                                var prod = new List<string> { "epsilon", key };
+                                _parseTable[(key, "$")] = ("epsilon", _productionsRhs.IndexOf(prod) + 1);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Found a conflict for pair: " + key + ", " + symbol);
+                            }
+                        }
+                        else if (_parseTable[(key, symbol)].Item1.Equals("err"))
+                        {
+                            var prod = new List<string> { "epsilon", key };
+                            _parseTable[(key, symbol)] = ("epsilon", _productionsRhs.IndexOf(prod) + 1);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Found a conflict for pair: " + key + ", " + symbol);
+                        }
+                    }
+                }
+            }
         }
     }
     
