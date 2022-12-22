@@ -6,12 +6,14 @@ public class Parser
     private Dictionary<string, HashSet<string>> _firstSet;
     private Dictionary<string, HashSet<string>> _followSet;
     private readonly Dictionary<(string, string), (string, int)> _parseTable;
-    
+    private readonly List<List<string>> _productionsRhs;
+
     public Parser(Grammar grammar) {
         _grammar = grammar;
         _firstSet = new Dictionary<string, HashSet<string>>();
         _followSet = new Dictionary<string, HashSet<string>>();
         _parseTable = new Dictionary<(string, string), (string, int)>();
+        _productionsRhs = new List<List<string>>();
         
         GenerateFirst();
         GenerateFollow();
@@ -26,6 +28,71 @@ public class Parser
     
     public string ParseTableToString() => _parseTable.Aggregate("============= Parse Table =============\n",
         (current, keyValuePair) => current + $"{keyValuePair.Key}: [{string.Join(", ", keyValuePair.Value)}]\n");
+
+    public Grammar Grammar() => _grammar;
+    
+    public List<int> ParseSequence(List<string> sequence)
+    {
+        var alpha = new Stack<string>();
+        var beta = new Stack<string>();
+        var result = new List<int>();
+        
+        // init
+        alpha.Push("$");
+        for (var i = sequence.Count - 1; i >= 0; i--)
+        {
+            alpha.Push(sequence[i]);
+        }
+        
+        beta.Push("$");
+        beta.Push(_grammar.StartingSymbol);
+        
+        while (!(alpha.Peek() == "$" && beta.Peek() == "$"))
+        {
+            var alphaPeek = alpha.Peek();
+            var betaPeek = beta.Peek();
+            var key = (betaPeek, alphaPeek);
+            var value = _parseTable[key];
+
+            if (value.Item1 != "err")
+            {
+                if (value.Item1 == "pop")
+                {
+                    alpha.Pop();
+                    beta.Pop();
+                }
+                else
+                {
+                    beta.Pop();
+                    if (value.Item1 != "epsilon")
+                    {
+                        var val = value.Item1.Split(" ");
+                        for (var i = val.Length - 1; i >= 0; i--)
+                        {
+                            beta.Push(val[i]);
+                        }
+                    }
+                    result.Add(value.Item2);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Syntax error for key: {key}");
+                Console.WriteLine($"Alpha: {string.Join(", ", alpha)}\nBeta: {string.Join(", ", beta)}");
+                result = new List<int> { -1 };
+                return result;
+            }
+        }
+
+        return result;
+    }
+
+    public List<string> GetProductionByOrderNumber(int order)
+    {
+        var production = _productionsRhs[order - 1];
+        
+        return production.Contains("epsilon") ? new List<string> { "epsilon" } : production;
+    }
     
     #region Private methods
     
@@ -189,11 +256,10 @@ public class Parser
         // add acc
         _parseTable[("$", "$")] = ("acc", -1);
         
-        var productionsRhs = new List<List<string>>();
         foreach (var (k, v) in _grammar.ProductionSet.Productions())
         {
             var nonTerminal = k.First();
-            productionsRhs.AddRange(v.Select(production => 
+            _productionsRhs.AddRange(v.Select(production => 
                 production[0] != "epsilon" ? production : new List<string> { "epsilon", nonTerminal }));
         }
         
@@ -209,7 +275,7 @@ public class Parser
                 {
                     if (_parseTable[(key, firstSymbol)].Item1.Equals("err"))
                     {
-                        _parseTable[(key, firstSymbol)] = (string.Join(" ", production), productionsRhs.IndexOf(production) + 1);
+                        _parseTable[(key, firstSymbol)] = (string.Join(" ", production), _productionsRhs.IndexOf(production) + 1);
                     }
                     else
                     {
@@ -224,7 +290,7 @@ public class Parser
                         {
                             if (_parseTable[(key, symbol)].Item1.Equals("err"))
                             {
-                                _parseTable[(key, symbol)] = (string.Join(" ", production),productionsRhs.IndexOf(production)+1);
+                                _parseTable[(key, symbol)] = (string.Join(" ", production),_productionsRhs.IndexOf(production)+1);
                             }
                             else
                             {
@@ -258,7 +324,7 @@ public class Parser
                         {
                             if (_parseTable[(key, symbolToAdd)].Item1.Equals("err"))
                             {
-                                _parseTable[(key, symbolToAdd)] = (string.Join(" ", production), productionsRhs.IndexOf(production) + 1);
+                                _parseTable[(key, symbolToAdd)] = (string.Join(" ", production), _productionsRhs.IndexOf(production) + 1);
                             }
                             else
                             {
@@ -277,7 +343,7 @@ public class Parser
                             if (_parseTable[(key, "$")].Item1.Equals("err"))
                             {
                                 var prod = new List<string> { "epsilon", key };
-                                _parseTable[(key, "$")] = ("epsilon", productionsRhs.IndexOf(prod) + 1);
+                                _parseTable[(key, "$")] = ("epsilon", _productionsRhs.IndexOf(prod) + 1);
                             }
                             else
                             {
@@ -287,7 +353,7 @@ public class Parser
                         else if (_parseTable[(key, symbol)].Item1.Equals("err"))
                         {
                             var prod = new List<string> { "epsilon", key };
-                            _parseTable[(key, symbol)] = ("epsilon", productionsRhs.IndexOf(prod) + 1);
+                            _parseTable[(key, symbol)] = ("epsilon", _productionsRhs.IndexOf(prod) + 1);
                         }
                         else
                         {

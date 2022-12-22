@@ -81,7 +81,7 @@ public class ProductionSet
         return result;
     }
     
-    public List<string>? GetKey(ICollection<string> lhs) =>
+    public List<string> GetKey(ICollection<string> lhs) =>
         _productions.Keys.FirstOrDefault(x => AreListsEqual(x, lhs));
     
     private void Add(List<string> lhs, List<string> rhs)

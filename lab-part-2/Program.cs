@@ -49,4 +49,10 @@ GrammarMenu(grammar);
 var parser = new Parser(grammar);
 Console.WriteLine(parser.FirstToString());
 Console.WriteLine(parser.FollowToString());
-Console.WriteLine(parser.ParseTableToString());
+// Console.WriteLine(parser.ParseTableToString());
+
+var sequence = new List<string> { "</", "var", "a", "is", "+", "1", ";", "/>" };
+Console.WriteLine(string.Join(", ", parser.ParseSequence(sequence)));
+
+var parserOutput = new ParserOutput(parser, sequence);
+parserOutput.WriteTreeToFile("../../../resources/out1.txt");
