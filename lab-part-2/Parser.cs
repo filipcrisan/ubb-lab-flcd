@@ -6,14 +6,12 @@ public class Parser
     private Dictionary<string, HashSet<string>> _firstSet;
     private Dictionary<string, HashSet<string>> _followSet;
     private readonly Dictionary<(string, string), (string, int)> _parseTable;
-    private readonly List<List<string>> _productionsRhs;
     
     public Parser(Grammar grammar) {
         _grammar = grammar;
         _firstSet = new Dictionary<string, HashSet<string>>();
         _followSet = new Dictionary<string, HashSet<string>>();
         _parseTable = new Dictionary<(string, string), (string, int)>();
-        _productionsRhs = new List<List<string>>();
         
         GenerateFirst();
         GenerateFollow();
@@ -191,13 +189,12 @@ public class Parser
         // add acc
         _parseTable[("$", "$")] = ("acc", -1);
         
+        var productionsRhs = new List<List<string>>();
         foreach (var (k, v) in _grammar.ProductionSet.Productions())
         {
             var nonTerminal = k.First();
-            foreach (var production in v)
-            {
-                _productionsRhs.Add(production[0] != "epsilon" ? production : new List<string> { "epsilon", nonTerminal });
-            }
+            productionsRhs.AddRange(v.Select(production => 
+                production[0] != "epsilon" ? production : new List<string> { "epsilon", nonTerminal }));
         }
         
         foreach (var (k, v) in _grammar.ProductionSet.Productions())
@@ -212,7 +209,7 @@ public class Parser
                 {
                     if (_parseTable[(key, firstSymbol)].Item1.Equals("err"))
                     {
-                        _parseTable[(key, firstSymbol)] = (string.Join(" ", production), _productionsRhs.IndexOf(production) + 1);
+                        _parseTable[(key, firstSymbol)] = (string.Join(" ", production), productionsRhs.IndexOf(production) + 1);
                     }
                     else
                     {
@@ -227,7 +224,7 @@ public class Parser
                         {
                             if (_parseTable[(key, symbol)].Item1.Equals("err"))
                             {
-                                _parseTable[(key, symbol)] = (string.Join(" ", production),_productionsRhs.IndexOf(production)+1);
+                                _parseTable[(key, symbol)] = (string.Join(" ", production),productionsRhs.IndexOf(production)+1);
                             }
                             else
                             {
@@ -261,7 +258,7 @@ public class Parser
                         {
                             if (_parseTable[(key, symbolToAdd)].Item1.Equals("err"))
                             {
-                                _parseTable[(key, symbolToAdd)] = (string.Join(" ", production), _productionsRhs.IndexOf(production) + 1);
+                                _parseTable[(key, symbolToAdd)] = (string.Join(" ", production), productionsRhs.IndexOf(production) + 1);
                             }
                             else
                             {
@@ -280,7 +277,7 @@ public class Parser
                             if (_parseTable[(key, "$")].Item1.Equals("err"))
                             {
                                 var prod = new List<string> { "epsilon", key };
-                                _parseTable[(key, "$")] = ("epsilon", _productionsRhs.IndexOf(prod) + 1);
+                                _parseTable[(key, "$")] = ("epsilon", productionsRhs.IndexOf(prod) + 1);
                             }
                             else
                             {
@@ -290,7 +287,7 @@ public class Parser
                         else if (_parseTable[(key, symbol)].Item1.Equals("err"))
                         {
                             var prod = new List<string> { "epsilon", key };
-                            _parseTable[(key, symbol)] = ("epsilon", _productionsRhs.IndexOf(prod) + 1);
+                            _parseTable[(key, symbol)] = ("epsilon", productionsRhs.IndexOf(prod) + 1);
                         }
                         else
                         {
