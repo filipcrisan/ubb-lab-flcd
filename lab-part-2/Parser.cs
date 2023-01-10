@@ -26,6 +26,10 @@ public class Parser
     public string FollowToString() => _followSet.Aggregate("============= Follow =============\n",
         (current, keyValuePair) => current + $"{keyValuePair.Key}: [{string.Join(", ", keyValuePair.Value)}]\n");
     
+    /// <summary>
+    /// Don't use this for printing to the console, since parse table can be large. Output it to a file.
+    /// </summary>
+    /// <returns></returns>
     public string ParseTableToString() => _parseTable.Aggregate("============= Parse Table =============\n",
         (current, keyValuePair) => current + $"{keyValuePair.Key}: [{string.Join(", ", keyValuePair.Value)}]\n");
 
@@ -89,6 +93,11 @@ public class Parser
 
     public List<string> GetProductionByOrderNumber(int order)
     {
+        if (order == 0)
+        {
+            return new List<string>();
+        }
+
         var production = _productionsRhs[order - 1];
         
         return production.Contains("epsilon") ? new List<string> { "epsilon" } : production;

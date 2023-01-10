@@ -1,12 +1,16 @@
-const a is 2, b is 3, c is 4;
-if (a >= b and a >= c) { 
-    print(a);
+</
+const a is +2;
+const b is +3;
+const c is +4;
+var M is -1;
+if (a >= b) {
+    M is a;
 }
 else {
-    if (b >= a and b >= c) {
-        print(b);
-    }
-    else {
-        print(c);
-    }
+    M is b;
 }
+if (c >= M) {
+    M is c;
+}
+print(M)
+/>

@@ -1,7 +1,9 @@
-const n is 5;
-const numbers is [1, 2, 3, 4, 5];
+</
+const n is +5;
+const numbers is [+1, +2, +3, +4, +5];
 var sum is 0;
-for (i from 0 to n - 1) {
+for (i from 0 to n - +1) {
 sum is (sum + numbers[i]);
 }
 print(sum);
+/>

@@ -42,6 +42,20 @@ void GrammarMenu(Grammar grammar)
     }
 }
 
+// var grammar = new Grammar("../../../resources/g1.in");
+//
+// GrammarMenu(grammar);
+//
+// var parser = new Parser(grammar);
+// Console.WriteLine(parser.FirstToString());
+// Console.WriteLine(parser.FollowToString());
+//
+// var sequence = SequenceHelper.GetSequenceFromListFile("../../../resources/seq.txt");
+// Console.WriteLine(string.Join(", ", parser.ParseSequence(sequence)));
+//
+// var parserOutput = new ParserOutput(parser, sequence);
+// parserOutput.WriteTreeToFile("../../../resources/out1.txt");
+
 var grammar = new Grammar("../../../resources/g2.in");
 
 GrammarMenu(grammar);
@@ -49,10 +63,9 @@ GrammarMenu(grammar);
 var parser = new Parser(grammar);
 Console.WriteLine(parser.FirstToString());
 Console.WriteLine(parser.FollowToString());
-// Console.WriteLine(parser.ParseTableToString());
 
-var sequence = new List<string> { "</", "var", "a", "is", "+", "1", ";", "/>" };
+var sequence = SequenceHelper.GetSequenceFromPif("../../../resources/PIF.txt");
 Console.WriteLine(string.Join(", ", parser.ParseSequence(sequence)));
 
 var parserOutput = new ParserOutput(parser, sequence);
-parserOutput.WriteTreeToFile("../../../resources/out1.txt");
+parserOutput.WriteTreeToFile("../../../resources/out2.txt");
